@@ -1,13 +1,15 @@
 from rest_framework import filters, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from reviews.models import Comment, Review, Title, User
+from reviews.models import Comment, Genre, Review, Title, User
 
 from .permissions import AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer, UserSerializer
+from .serializers import (CommentSerializer, GenreSerializer, ReviewSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для API к User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AdminOrSuperUserOnly,)
@@ -17,6 +19,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для API к Review."""
     serializer_class = ReviewSerializer
     permissions_classes = (StaffOrAuthorOrReadOnly,)
 
@@ -35,6 +38,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для API к Comment."""
     serializer_class = CommentSerializer
     permission_classes = (StaffOrAuthorOrReadOnly,)
 
@@ -60,12 +64,20 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для API к Title."""
     pass
 
 
 class GenreViewSet(viewsets.ModelViewSet):
-    pass
+    """Вьюсет для API к Ganre."""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (AdminOrSuperUserOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("name",)
+    lookup_field = "slug"
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """Вьюсет для API к Category."""
     pass
