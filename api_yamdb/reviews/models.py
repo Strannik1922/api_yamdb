@@ -13,17 +13,21 @@ class User(AbstractUser):
         (MODERATOR, 'moderator'),
     )
 
+    username = models.CharField(
+        max_length=30,
+        unique=True
+    )
     email = models.EmailField(
-        unique=True, 
+        unique=True,
         blank=False
     )
     role = models.CharField(
-        max_length=30, 
+        max_length=30,
         choices=CHOICES,
         default='user'
     )
     bio = models.TextField(
-        max_length=200, 
+        max_length=200,
         blank=True
     )
 
