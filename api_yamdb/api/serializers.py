@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from reviews.models import User, Review, Comment, CHOICES
+from reviews.models import Comment, Review, User
 
 
 class UserSerializer(serializers.ModelSerializer):
     # Теперь поле примет только значение, упомянутое в списке CHOICES
-    username = serializers.ChoiceField(choices=CHOICES)
+    # username = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
         model = User
