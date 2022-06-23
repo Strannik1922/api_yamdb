@@ -3,6 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
+    """Модель пользователей."""
     USER = 'user'
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -12,7 +13,6 @@ class User(AbstractUser):
         (ADMIN, 'admin'),
         (MODERATOR, 'moderator'),
     )
-
     username = models.CharField(
         max_length=30,
         unique=True
@@ -36,6 +36,7 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
+    """Модель категорий."""
     name = models.CharField(max_length=30)
     slug = models.SlugField(unique=True)
 
@@ -44,6 +45,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанров."""
     name = models.CharField(max_length=30)
     slug = models.SlugField(unique=True)
 
@@ -52,6 +54,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель произведений."""
     name = models.CharField(max_length=50)
     year = models.IntegerField()
     description = models.TextField(
@@ -73,6 +76,7 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    """Модель отзывов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -95,6 +99,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель комментариев."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
