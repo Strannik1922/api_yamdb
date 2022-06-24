@@ -68,9 +68,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
     pass
-#     queryset = Title.objects.all().annotate(
-#         Avg("reviews__score")
-#     ).order_by("name")
+    # queryset = Title.objects.all().annotate(
+    #     Avg("reviews__score")
+    # ).order_by("name")
 #     serializer_class = TitleSerializer
 #     permission_classes = (AdminOrSuperUserOnly,)
 
