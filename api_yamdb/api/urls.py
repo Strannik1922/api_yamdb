@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     UserViewSet,
+    ApiSignup,
+    GetToken
     CategoryViewSet,
     GenreViewSet,
     TitleViewSet,
@@ -10,41 +12,44 @@ from .views import (
     CommentViewSet,
 )
 
-router = DefaultRouter()
+
+router_v1 = DefaultRouter()
 router.register(
     r'users',
-    UserViewSet
+    UserViewSet,
+    basename = 'users'
 )
-router.register(
+router_v1.register(
     r'categories',
-    CategoryViewSet
+    CategoryViewSet,
+    basename = 'categories'
 )
-router.register(
+router_v1.register(
     r'genres',
-    GenreViewSet
+    GenreViewSet,
+    basename='genres'
 )
-router.register(
+router_v1.register(
     r'titles',
-    TitleViewSet
+    TitleViewSet,
+    basename='titles'
 )
-router.register(
+router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
     basename='reviews'
 )
-router.register(
+router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-    CommentViewSet, basename='comments'
+    CommentViewSet, 
+    basename='comments'
 )
 
-auth_patterns = [
-    path('signup/', ),
-    path('token/', ),
-    path('', include('djoser.urls')),
-    path('', include('djoser.urls.jwt')),
-]
-
 urlpatterns = [
-    path('v1/auth/', include(auth_patterns)),
     path('v1/', include(router.urls)),
+    path('v1/auth/signup/',
+         views.ApiSignup.as_view(),
+         name='send_code_to_email'),
+    path('v1/auth/token/',
+         views.GetToken.as_view())
 ]

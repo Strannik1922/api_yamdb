@@ -2,40 +2,33 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
+USER = 'user'
+ADMIN = 'admin'
+MODERATOR = 'moderator'
+
+ROLES = (
+    (USER, 'user'),
+    (ADMIN, 'admin'),
+    (MODERATOR, 'moderator'),
+)
+
+
 class User(AbstractUser):
-    USER = 'user'
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
+    """Модель пользователей."""
 
-    CHOICES = (
-        (USER, 'user'),
-        (ADMIN, 'admin'),
-        (MODERATOR, 'moderator'),
-    )
-
-    username = models.CharField(
-        max_length=30,
-        unique=True
-    )
-    email = models.EmailField(
-        unique=True,
-        blank=False
-    )
+    first_name = models.CharField(max_length=150, blank=True)
     role = models.CharField(
         max_length=30,
-        choices=CHOICES,
+        choices=ROLES,
         default='user'
     )
     bio = models.TextField(
-        max_length=200,
         blank=True
     )
 
-    class Meta:
-        ordering = ('role',)
-
 
 class Category(models.Model):
+    """Модель категорий."""
     name = models.CharField(max_length=30)
     slug = models.SlugField(unique=True)
 
@@ -44,6 +37,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанров."""
     name = models.CharField(max_length=30)
     slug = models.SlugField(unique=True)
 
@@ -52,6 +46,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель произведений."""
     name = models.CharField(max_length=50)
     year = models.IntegerField()
     description = models.TextField(
@@ -73,6 +68,7 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    """Модель отзывов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -95,6 +91,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель комментариев."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
