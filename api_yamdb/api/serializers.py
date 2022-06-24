@@ -12,7 +12,6 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
-        read_only_fields = ('first_name', 'last_name', 'bio', 'role',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
