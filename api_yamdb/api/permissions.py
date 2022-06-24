@@ -1,4 +1,4 @@
-from rest_framework import permissions
+from rest_framework import permissions, SAFE_METHODS
 
 
 class AdminOrSuperUserOnly(permissions.BasePermission):
@@ -22,7 +22,10 @@ class StaffOrAuthorOrReadOnly(permissions.BasePermission):
                 or request.user.is_authenticated)
 
 
-class PermissionTrue(permissions.BasePermission):
+class IsAdminOrReadOnlyPermission(permissions.BasePermission):
 
-    def has_permission(self, request, value):
-        return True
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        if request.user.is_authenticated:
+            return request.user.role == 'admin'
