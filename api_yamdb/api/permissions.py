@@ -9,8 +9,20 @@ class AdminOrSuperUserOnly(permissions.BasePermission):
         )
 
 
+class AdminOnly(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user.role == 'admin'
+
+
 class StaffOrAuthorOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (request.method in permissions.SAFE_METHODS
                 or request.user.is_authenticated)
+
+
+class PermissionTrue(permissions.BasePermission):
+
+    def has_permission(self, request, value):
+        return True
