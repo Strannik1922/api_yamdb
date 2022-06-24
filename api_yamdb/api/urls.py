@@ -1,20 +1,55 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from .views import (
+    UserViewSet,
+    ApiSignup,
+    GetToken,
+    CategoryViewSet,
+    GenreViewSet,
+    TitleViewSet,
+    ReviewViewSet,
+    CommentViewSet,
+)
+
 
 router_v1 = DefaultRouter()
-router_v1.register('users', views.UserViewSet, basename='users')
-router_v1.register('posts', views.TitleViewSet, basename='titles')
-router_v1.register('posts', views.GenreViewSet, basename='genres')
-router_v1.register('posts', views.CategoryViewSet, basename='categories')
-# В роутере можно зарегистрировать любое количество пар "URL, viewset":
-# например
-# router.register('owners', OwnerViewSet)
-# Но нам это пока не нужно
+router.register(
+    r'users',
+    UserViewSet,
+    basename = 'users'
+)
+router_v1.register(
+    r'categories',
+    CategoryViewSet,
+    basename = 'categories'
+)
+router_v1.register(
+    r'genres',
+    GenreViewSet,
+    basename='genres'
+)
+router_v1.register(
+    r'titles',
+    TitleViewSet,
+    basename='titles'
+)
+router_v1.register(
+    r'titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='reviews'
+)
+router_v1.register(
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet, 
+    basename='comments'
+)
 
 urlpatterns = [
-    # Все зарегистрированные в router пути доступны в router.urls
-    # Включим их в головной urls.py
-    path('v1/', include(router_v1.urls)),
+    path('v1/', include(router.urls)),
+    path('v1/auth/signup/',
+         views.ApiSignup.as_view(),
+         name='send_code_to_email'),
+    path('v1/auth/token/',
+         views.GetToken.as_view())
 ]
