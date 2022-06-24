@@ -1,10 +1,11 @@
-from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
-from .permissions import AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly
+from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
+                          IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer,
                           UserSerializer)
@@ -67,12 +68,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
-    pass
-#     queryset = Title.objects.all().annotate(
-#         Avg("reviews__score")
-#     ).order_by("name")
-#     serializer_class = TitleSerializer
-#     permission_classes = (AdminOrSuperUserOnly,)
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
+    filter_backends = [DjangoFilterBackend]
 
 
 class GenreViewSet(viewsets.ModelViewSet):
