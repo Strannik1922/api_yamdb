@@ -1,19 +1,50 @@
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from django.urls import include, path
-
-from . import views
-
+from .views import (
+    UserViewSet,
+    CategoryViewSet,
+    GenreViewSet,
+    TitleViewSet,
+    ReviewViewSet,
+    CommentViewSet,
+)
 
 router = DefaultRouter()
-router.register('users', views.UserViewSet, basename='users')
-# В роутере можно зарегистрировать любое количество пар "URL, viewset":
-# например
-# router.register('owners', OwnerViewSet)
-# Но нам это пока не нужно
+router.register(
+    r'users',
+    UserViewSet
+)
+router.register(
+    r'categories',
+    CategoryViewSet
+)
+router.register(
+    r'genres',
+    GenreViewSet
+)
+router.register(
+    r'titles',
+    TitleViewSet
+)
+router.register(
+    r'titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='reviews'
+)
+router.register(
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
+    CommentViewSet, basename='comments'
+)
+
+auth_patterns = [
+    path('signup/', ),
+    path('token/', ),
+    path('', include('djoser.urls')),
+    path('', include('djoser.urls.jwt')),
+]
 
 urlpatterns = [
-    # Все зарегистрированные в router пути доступны в router.urls
-    # Включим их в головной urls.py
+    path('v1/auth/', include(auth_patterns)),
     path('v1/', include(router.urls)),
 ]
