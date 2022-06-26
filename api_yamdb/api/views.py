@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from rest_framework import filters, viewsets, status
@@ -8,13 +9,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from .filters import TitleFilter
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
-                          AdminOnly)
+                          AdminOnly, IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
-                          UserSerializer)
+                          UserSerializer, TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -85,12 +87,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
-    pass
-    # queryset = Title.objects.all().annotate(
-    #     Avg("reviews__score")
-    # ).order_by("name")
-#     serializer_class = TitleSerializer
-#     permission_classes = (AdminOrSuperUserOnly,)
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnlyPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
 
 
 class GenreViewSet(viewsets.ModelViewSet):
