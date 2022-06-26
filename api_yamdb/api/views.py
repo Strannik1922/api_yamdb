@@ -15,7 +15,7 @@ from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
-                          UserSerializer, TitleSerializer)
+                          UserSerializer, GetTokenSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -116,19 +116,34 @@ class ApiSignup(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self, request):
+        if not request.data:
+            return Response(
+                {
+                    'username': ['username не заполнено'],
+                    'email': ['email не заполнено']
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            user = get_object_or_404(User, username=request.data['username'])
+            username = request.data['username']
+            email = request.data['email']
+            user = get_object_or_404(User, username=username)
             obj_for_code = PasswordResetTokenGenerator()
             code = obj_for_code.make_token(user)
             send_mail(
                 'Code for api_yambd',
                 f'Your code: {code}',
                 'check@mail.com',
-                [request.data['email'], ],
+                [email, ],
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    'username': username,
+                    'email': email
+                },
+                status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -136,13 +151,17 @@ class GetToken(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self, request):
-        user = get_object_or_404(User, username=request.data['username'])
-        code = request.data['confirmation_code']
-        obj_for_code = PasswordResetTokenGenerator()
-        if obj_for_code.check_token(user, code):
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        return Response({'message': 'неверный код/пользователь'})
+        serializer = GetTokenSerializer(data=request.data)
+        if serializer.is_valid():
+            user = get_object_or_404(User, username=request.data['username'])
+            code = request.data['confirmation_code']
+            obj_for_code = PasswordResetTokenGenerator()
+            if obj_for_code.check_token(user, code):
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'token': str(refresh.access_token),
+                })
+            return Response({'message': 'неверный код/пользователь'})
+        return Response({'message': 'username и confirmation_code '
+                        '- обязательные поля типа string'},
+                        status=status.HTTP_400_BAD_REQUEST)
