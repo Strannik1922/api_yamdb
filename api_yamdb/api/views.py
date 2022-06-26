@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -9,12 +10,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
-
-from .permissions import (AdminOnly, AdminOrSuperUserOnly,
-                          IsAdminOrReadOnlyPermission, StaffOrAuthorOrReadOnly)
+from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
+                          AdminOnly, IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, TitleSerializer,
-                          UserSerializer)
+                          GenreSerializer, ReviewSerializer,
+                          UserSerializer, TitleSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):

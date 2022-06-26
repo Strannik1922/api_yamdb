@@ -218,4 +218,3 @@ ___
 - Программист - Анатолий Серганов [@toleadore](https://github.com/toleadore)
 
 - Програмист - Антон Голенцов [@GoIAnton](https://github.com/GoIAnton)
-
