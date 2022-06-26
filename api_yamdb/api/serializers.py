@@ -95,3 +95,4 @@ class CategorySerializer(serializers.ModelSerializer):
 class GetTokenSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
     confirmation_code = serializers.CharField(max_length=50)
+
