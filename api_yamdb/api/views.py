@@ -99,7 +99,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Ganre."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (AdminOrSuperUserOnly,)
+    permission_classes = (IsAdminOrReadOnlyPermission,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
@@ -109,7 +109,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (AdminOrSuperUserOnly,)
+    permission_classes = (IsAdminOrReadOnlyPermission,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     lookup_field = "slug"
