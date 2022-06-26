@@ -87,6 +87,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
+    pass
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
