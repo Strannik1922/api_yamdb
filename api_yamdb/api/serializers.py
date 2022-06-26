@@ -1,3 +1,4 @@
+from enum import unique
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Category, Comment, Genre, Review, Title, User
@@ -14,12 +15,6 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name', 'last_name', 'bio', 'role'
         )
         read_only_fields = ('first_name', 'last_name', 'bio', 'role',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=User.objects.all(),
-                fields=('username', 'email')
-            )
-        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):

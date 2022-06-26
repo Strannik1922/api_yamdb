@@ -16,6 +16,7 @@ ROLES = (
 class User(AbstractUser):
     """Модель пользователей."""
 
+    email = models.EmailField(blank=True, unique=True)
     first_name = models.CharField(max_length=150, blank=True)
     role = models.CharField(
         max_length=30,
@@ -25,14 +26,6 @@ class User(AbstractUser):
     bio = models.TextField(
         blank=True
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
-            )
-        ]
 
 
 class Category(models.Model):
