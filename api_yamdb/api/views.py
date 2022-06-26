@@ -14,7 +14,7 @@ from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
                           AdminOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
-                          UserSerializer, GetTokenSerializer)
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -129,6 +129,9 @@ class ApiSignup(APIView):
         if serializer.is_valid():
             serializer.save()
             username = request.data['username']
+            if username == 'me':
+                return Response({'username': ['username не может быть me',]},
+                                status=status.HTTP_400_BAD_REQUEST)
             email = request.data['email']
             user = get_object_or_404(User, username=username)
             obj_for_code = PasswordResetTokenGenerator()
@@ -152,17 +155,28 @@ class GetToken(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self, request):
-        serializer = GetTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            user = get_object_or_404(User, username=request.data['username'])
-            code = request.data['confirmation_code']
-            obj_for_code = PasswordResetTokenGenerator()
-            if obj_for_code.check_token(user, code):
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    'token': str(refresh.access_token),
-                })
-            return Response({'message': 'неверный код/пользователь'})
-        return Response({'message': 'username и confirmation_code '
-                        '- обязательные поля типа string'},
+        fields = ['username', 'confirmation_code']
+        for field in fields:
+            if field not in request.data.keys():
+                return Response({field: [f'{field} не заполнено'],},
+                status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(User, username=request.data.get('username'))
+        try:
+            code = request.data.get('confirmation_code')
+            if code == None:
+                return Response({'message': ['пустое поле!',]},
+                        status=status.HTTP_400_BAD_REQUEST)
+            int(code)
+        except ValueError:
+            pass
+        else:
+            return Response({'confirmation_code': ['неправильный тип поля!',]},
+                        status=status.HTTP_400_BAD_REQUEST)
+        obj_for_code = PasswordResetTokenGenerator()
+        if obj_for_code.check_token(user, code):
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'token': str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
+        return Response({'message': ['неверный код',]},
                         status=status.HTTP_400_BAD_REQUEST)

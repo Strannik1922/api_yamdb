@@ -1,6 +1,5 @@
-from enum import unique
-from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
+from rest_framework import serializers, status
+from rest_framework.response import Response
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -85,8 +84,3 @@ class CategorySerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'url': {'lookup_field': 'slug'}
         }
-
-
-class GetTokenSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField(max_length=50)
