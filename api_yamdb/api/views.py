@@ -16,7 +16,7 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 from .permissions import (StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
+                          GenreSerializer, ReviewSerializer, TitleWriteSerializer,
                           UserSerializer, TitleSerializer)
 
 
@@ -94,6 +94,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleSerializer
+        return TitleWriteSerializer
 
 
 class GenreViewSet(viewsets.ModelViewSet):
