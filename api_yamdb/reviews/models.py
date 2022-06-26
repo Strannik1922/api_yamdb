@@ -32,7 +32,12 @@ class User(AbstractUser):
     )
 
     class Meta:
-        ordering = ('role',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]
 
 
 class Category(models.Model):
