@@ -1,19 +1,37 @@
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериалайзер вьюсета User."""
-    # Теперь поле примет только значение, упомянутое в списке CHOICES
-    # username = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+            'first_name',
+            'last_name',
+            'username',
+            'bio',
+            'email',
+            'role'
         )
-        read_only_fields = ('first_name', 'last_name', 'bio', 'role',)
+
+
+class UserSerializerOrReadOnly(serializers.ModelSerializer):
+    """Сериалайзер пользователей(чтение)"""
+
+    role = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name',
+            'last_name',
+            'username',
+            'bio',
+            'email',
+            'role'
+        )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
