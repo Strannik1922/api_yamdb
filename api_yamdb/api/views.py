@@ -13,8 +13,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .filters import TitleFilter
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (StaffOrAuthorOrReadOnly,
-                          AdminOnly, IsAdminOrReadOnlyPermission)
+from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
+                          AdminOnly, IsAdminOrReadOnlyPermission,
+                          CommentsAndViewsPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleWriteSerializer,
                           UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
@@ -65,12 +66,16 @@ class UserViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Review."""
     serializer_class = ReviewSerializer
-    permissions_classes = (StaffOrAuthorOrReadOnly,)
+    pagination_class = PageNumberPagination
+    permission_classes = (CommentsAndViewsPermission, )
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
-        serializer.save(author=self.request.user, title=title)
+        user = self.request.user
+        if Review.objects.filter(author=user.id, title=title.id).exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(author=user, title=title)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')

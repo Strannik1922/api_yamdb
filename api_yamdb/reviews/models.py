@@ -12,6 +12,19 @@ ROLES = (
     (MODERATOR, 'moderator'),
 )
 
+SCORES = (
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5),
+    (6, 6),
+    (7, 7),
+    (8, 8),
+    (9, 9),
+    (10, 10),
+)
+
 
 class User(AbstractUser):
     """Модель пользователей."""
@@ -64,31 +77,32 @@ class Title(models.Model):
         blank=True
     )
 
-    def __str__(self):
-        return self.name
-
 
 class Review(models.Model):
     """Модель отзывов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     text = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
-    rating = models.PositiveSmallIntegerField(
-        blank=True,
-        null=True
+    score = models.PositiveSmallIntegerField(
+        choices=SCORES,
     )
-
-    def __str__(self):
-        return self.text
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            )
+        ]
 
 
 class Comment(models.Model):
@@ -105,6 +119,3 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-
-    def __str__(self):
-        return self.text
