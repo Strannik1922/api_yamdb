@@ -124,7 +124,7 @@ class ApiSignup(APIView):
                     'username': ['username не заполнено'],
                     'email': ['email не заполнено']
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
