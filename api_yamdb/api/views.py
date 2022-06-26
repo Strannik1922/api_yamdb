@@ -1,10 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from rest_framework import filters, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -12,7 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .filters import TitleFilter
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
+from .permissions import (StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
@@ -88,10 +89,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
     pass
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__rating'))
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
 
 
@@ -101,8 +102,8 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnlyPermission,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
