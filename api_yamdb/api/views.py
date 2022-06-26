@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -10,18 +10,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
-                          AdminOnly, IsAdminOrReadOnlyPermission)
+
+from .filters import TitleFilter
+from .permissions import (AdminOrSuperUserOnly,
+                          IsAdminOrReadOnlyPermission, StaffOrAuthorOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          UserSerializer, TitleSerializer)
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (AdminOnly,)
+    permission_classes = (AdminOrSuperUserOnly,)
     pagination_class = LimitOffsetPagination
 
     @action(detail=False,
@@ -89,6 +91,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
 
 
 class GenreViewSet(viewsets.ModelViewSet):
