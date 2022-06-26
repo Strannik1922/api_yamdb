@@ -1,28 +1,19 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (
-    UserViewSet,
-    ApiSignup,
-    GetToken,
-    CategoryViewSet,
-    GenreViewSet,
-    TitleViewSet,
-    ReviewViewSet,
-    CommentViewSet,
-)
-
+from .views import (ApiSignup, CategoryViewSet, CommentViewSet, GenreViewSet,
+                    GetToken, ReviewViewSet, TitleViewSet, UserViewSet)
 
 router_v1 = DefaultRouter()
-router.register(
+router_v1.register(
     r'users',
     UserViewSet,
-    basename = 'users'
+    basename='users'
 )
 router_v1.register(
     r'categories',
     CategoryViewSet,
-    basename = 'categories'
+    basename='categories'
 )
 router_v1.register(
     r'genres',
@@ -41,15 +32,15 @@ router_v1.register(
 )
 router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-    CommentViewSet, 
+    CommentViewSet,
     basename='comments'
 )
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
+    path('v1/', include(router_v1.urls)),
     path('v1/auth/signup/',
-         views.ApiSignup.as_view(),
+         ApiSignup.as_view(),
          name='send_code_to_email'),
     path('v1/auth/token/',
-         views.GetToken.as_view())
+         GetToken.as_view())
 ]
