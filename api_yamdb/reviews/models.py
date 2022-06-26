@@ -26,6 +26,14 @@ class User(AbstractUser):
         blank=True
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_username_email'
+            )
+        ]
+
 
 class Category(models.Model):
     """Модель категорий."""

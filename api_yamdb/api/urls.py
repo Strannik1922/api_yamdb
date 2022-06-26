@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     UserViewSet,
     ApiSignup,
-    GetToken
+    GetToken,
     CategoryViewSet,
     GenreViewSet,
     TitleViewSet,
@@ -14,7 +14,7 @@ from .views import (
 
 
 router_v1 = DefaultRouter()
-router.register(
+router_v1.register(
     r'users',
     UserViewSet,
     basename = 'users'
@@ -46,10 +46,10 @@ router_v1.register(
 )
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
+    path('v1/', include(router_v1.urls)),
     path('v1/auth/signup/',
-         views.ApiSignup.as_view(),
+         ApiSignup.as_view(),
          name='send_code_to_email'),
     path('v1/auth/token/',
-         views.GetToken.as_view())
+         GetToken.as_view())
 ]
