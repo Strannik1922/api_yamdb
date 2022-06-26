@@ -17,12 +17,12 @@ router_v1 = DefaultRouter()
 router_v1.register(
     r'users',
     UserViewSet,
-    basename = 'users'
+    basename='users'
 )
 router_v1.register(
     r'categories',
     CategoryViewSet,
-    basename = 'categories'
+    basename='categories'
 )
 router_v1.register(
     r'genres',
@@ -41,7 +41,7 @@ router_v1.register(
 )
 router_v1.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-    CommentViewSet, 
+    CommentViewSet,
     basename='comments'
 )
 
