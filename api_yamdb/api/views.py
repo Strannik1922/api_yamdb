@@ -17,8 +17,9 @@ from .permissions import (StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission,
                           CommentsAndViewsPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, TitleWriteSerializer,
-                          UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
+                          GenreSerializer, ReviewSerializer,
+                          TitleWriteSerializer, UserSerializer,
+                          TitleSerializer, UserSerializerOrReadOnly)
 
 
 class CreateListDestroyViewSet(mixins.CreateModelMixin,
@@ -32,12 +33,12 @@ class UserViewSet(viewsets.ModelViewSet):
     """API для работы пользователями"""
 
     lookup_field = 'username'
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
     pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['user__username', ]
+    search_fields = ['username', ]
 
     @action(
         detail=False,

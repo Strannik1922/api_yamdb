@@ -49,7 +49,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             'id', 'text', 'author', 'score', 'pub_date'
         )
         read_only_fields = ('pub_date', )
-        
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериалайзер вьюсета Comment."""
@@ -106,4 +106,3 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'id', 'name', 'year', 'description', 'genre', 'category'
         )
         model = Title
-
