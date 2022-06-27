@@ -1,38 +1,54 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+SCORES = (
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5),
+    (6, 6),
+    (7, 7),
+    (8, 8),
+    (9, 9),
+    (10, 10),
+)
+
 
 class User(AbstractUser):
-    """Модель пользователей."""
-    USER = 'user'
+    """Добавление дополнительных полей."""
+
     ADMIN = 'admin'
     MODERATOR = 'moderator'
+    USER = 'user'
 
-    CHOICES = (
-        (USER, 'user'),
-        (ADMIN, 'admin'),
-        (MODERATOR, 'moderator'),
-    )
-    username = models.CharField(
-        max_length=30,
-        unique=True
-    )
-    email = models.EmailField(
-        unique=True,
-        blank=False
+    ROLE = (
+        (ADMIN, ADMIN),
+        (MODERATOR, MODERATOR),
+        (USER, USER)
     )
     role = models.CharField(
-        max_length=30,
-        choices=CHOICES,
-        default='user'
+        max_length=10,
+        choices=ROLE,
+        default=USER
     )
-    bio = models.TextField(
-        max_length=200,
-        blank=True
+    email = models.EmailField(unique=True)
+    bio = models.CharField(
+        blank=True,
+        max_length=255
     )
 
-    class Meta:
-        ordering = ('role',)
+    @property
+    def is_admin(self):
+        return self.is_superuser or self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_user(self):
+        return self.role == self.USER
 
 
 class Category(models.Model):
@@ -71,31 +87,32 @@ class Title(models.Model):
         blank=True
     )
 
-    def __str__(self):
-        return self.name
-
 
 class Review(models.Model):
     """Модель отзывов."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
     text = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews',
     )
-    rating = models.PositiveSmallIntegerField(
-        blank=True,
-        null=True
+    score = models.PositiveSmallIntegerField(
+        choices=SCORES,
     )
 
-    def __str__(self):
-        return self.text
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_author_title'
+            )
+        ]
 
 
 class Comment(models.Model):
@@ -112,6 +129,3 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-
-    def __str__(self):
-        return self.text
