@@ -1,6 +1,4 @@
-from rest_framework import serializers, status
-from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.response import Response
+from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 

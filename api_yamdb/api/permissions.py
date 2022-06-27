@@ -43,13 +43,19 @@ class IsAdminOrReadOnlyPermission(permissions.BasePermission):
 
 class CommentsAndViewsPermission(permissions.BasePermission):
 
-    def has_permissions(self, request, view):
+    def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        elif request.method == 'POST':
-            return request.user.role == 'admin'
-        elif request.method in ['DEL', 'PATCH']:
-            return (request.user.role in ['moderator', 'admin'] or
-                    request.user.id == request.data.get('author'))
-        else:
-            return False
+        elif obj.author == request.user:
+            return True
+        elif request.user.is_superuser:
+            return True
+        elif (
+                request.user.is_authenticated
+                and request.user.is_admin):
+            return True
+        elif (
+                request.user.is_authenticated
+                and request.user.is_moderator
+        ):
+            return True

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
 SCORES = (
     (1, 1),
     (2, 2),
