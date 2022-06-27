@@ -2,7 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db.models import Avg
-from rest_framework import filters, viewsets, status
+from rest_framework import filters, mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
@@ -13,12 +13,19 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .filters import TitleFilter
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
+from .permissions import (StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission,
                           CommentsAndViewsPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleWriteSerializer,
                           UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
+
+
+class CreateListDestroyViewSet(mixins.CreateModelMixin,
+                               mixins.ListModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,7 +42,8 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get', 'patch'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[IsAuthenticated],
+        url_path='me',
     )
     def me(self, request):
         """
@@ -127,7 +135,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     """Вьюсет для API к Ganre."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -137,7 +145,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateListDestroyViewSet):
     """Вьюсет для API к Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
