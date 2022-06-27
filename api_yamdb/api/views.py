@@ -14,8 +14,7 @@ from .filters import TitleFilter
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
-                          AdminOnly, IsAdminOrReadOnlyPermission,
-                          CommentsAndViewsPermission)
+                          AdminOnly, IsAdminOrReadOnlyPermission,)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleWriteSerializer,
                           UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
@@ -28,6 +27,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
+    # permission_classes = (AllowAny,)
     pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['user__username', ]
@@ -35,7 +35,8 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get', 'patch'],
-        permission_classes=[IsAuthenticated]
+        permission_classes=[IsAuthenticated],
+        url_path='me',
     )
     def me(self, request):
         """
@@ -67,15 +68,40 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Review."""
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (CommentsAndViewsPermission, )
+    permission_classes = (StaffOrAuthorOrReadOnly, )
+
+    def create(self, request, *args, **kwargs):
+        title_id = kwargs.get('title_id')
+        user = request.user
+        if Review.objects.filter(author=user, title=title_id).exists():
+            return Response({'message': ['У вас уже есть отзыв!',]},
+                        status=status.HTTP_400_BAD_REQUEST)
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         user = self.request.user
-        if Review.objects.filter(author=user.id, title=title.id).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.save(author=user, title=title)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        review_id = self.kwargs.get('pk')
+        review = get_object_or_404(Review, id=review_id)
+        if not user == review.author:
+            return Response({'message': ['Вы исправляете не свой отзыв!',]},
+                        status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        review_id = self.kwargs.get('pk')
+        review = get_object_or_404(Review, id=review_id)
+        roles = ['moderator', 'admin']
+        if not user == review.author and not user.role in roles:
+            return Response({'message': ['Вы удаляете не свой отзыв!',]},
+                        status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -90,6 +116,26 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Comment."""
     serializer_class = CommentSerializer
     permission_classes = (StaffOrAuthorOrReadOnly,)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        comment_id = self.kwargs.get('pk')
+        comment = get_object_or_404(Comment, id=comment_id)
+        roles = ['moderator', 'admin']
+        if not user.role in roles and not user == comment.author:
+            return Response({'message': ['Вы исправляете не свой комментарий!',]},
+                        status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        comment_id = self.kwargs.get('pk')
+        comment = get_object_or_404(Comment, id=comment_id)
+        roles = ['moderator', 'admin']
+        if not user == comment.author and not user.role in roles:
+            return Response({'message': ['Вы удаляете не свой отзыв!',]},
+                        status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
