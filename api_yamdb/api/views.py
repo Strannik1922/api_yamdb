@@ -115,7 +115,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
     pass
-    queryset = Title.objects.annotate(rating=Avg('reviews__rating'))
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (DjangoFilterBackend,)
