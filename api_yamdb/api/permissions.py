@@ -12,7 +12,10 @@ class AdminOrSuperUserOnly(permissions.BasePermission):
 class AdminOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return request.user.role == 'admin'
+        if request.user.is_superuser:
+            return True
+        elif request.user.is_authenticated and request.user.is_admin:
+            return True
 
 
 class StaffOrAuthorOrReadOnly(permissions.BasePermission):
@@ -27,8 +30,15 @@ class IsAdminOrReadOnlyPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.user.is_authenticated:
-            return request.user.role == 'admin'
+        elif request.user.is_superuser:
+            return True
+        elif (
+            request.user.is_authenticated
+            and request.user.role == 'admin'
+        ):
+            return True
+        else:
+            return False
 
 
 class CommentsAndViewsPermission(permissions.BasePermission):

@@ -2,16 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-USER = 'user'
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-
-ROLES = (
-    (USER, 'user'),
-    (ADMIN, 'admin'),
-    (MODERATOR, 'moderator'),
-)
-
 SCORES = (
     (1, 1),
     (2, 2),
@@ -27,18 +17,39 @@ SCORES = (
 
 
 class User(AbstractUser):
-    """Модель пользователей."""
+    """Добавление дополнительных полей."""
 
-    email = models.EmailField(blank=True, unique=True)
-    first_name = models.CharField(max_length=150, blank=True)
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+
+    ROLE = (
+        (ADMIN, ADMIN),
+        (MODERATOR, MODERATOR),
+        (USER, USER)
+    )
     role = models.CharField(
-        max_length=30,
-        choices=ROLES,
-        default='user'
+        max_length=10,
+        choices=ROLE,
+        default=USER
     )
-    bio = models.TextField(
-        blank=True
+    email = models.EmailField(unique=True)
+    bio = models.CharField(
+        blank=True,
+        max_length=255
     )
+
+    @property
+    def is_admin(self):
+        return self.is_superuser or self.role == self.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == self.MODERATOR
+
+    @property
+    def is_user(self):
+        return self.role == self.USER
 
 
 class Category(models.Model):
@@ -95,7 +106,7 @@ class Review(models.Model):
     score = models.PositiveSmallIntegerField(
         choices=SCORES,
     )
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

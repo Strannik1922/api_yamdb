@@ -17,8 +17,9 @@ from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
                           AdminOnly, IsAdminOrReadOnlyPermission,
                           CommentsAndViewsPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, TitleWriteSerializer,
-                          UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
+                          GenreSerializer, ReviewSerializer,
+                          TitleWriteSerializer, UserSerializer,
+                          TitleSerializer, UserSerializerOrReadOnly)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,12 +31,13 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (AdminOnly,)
     pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', ]
+    search_fields = ['username', ]
 
     @action(
         detail=False,
-        methods=['get', 'patch', 'post'],
-        permission_classes=[IsAuthenticated]
+        methods=['get', 'patch'],
+        permission_classes=[IsAuthenticated],
+        url_path='me',
     )
     def me(self, request):
         """
@@ -115,7 +117,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
     pass
-    queryset = Title.objects.annotate(rating=Avg('reviews__rating'))
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
     filter_backends = (DjangoFilterBackend,)
