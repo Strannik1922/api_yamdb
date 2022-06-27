@@ -1,36 +1,37 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db.models import Avg
-from rest_framework import filters, viewsets, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import (AllowAny, IsAuthenticated)
 from rest_framework_simplejwt.tokens import RefreshToken
-from .filters import TitleFilter
-
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (AdminOrSuperUserOnly, StaffOrAuthorOrReadOnly,
-                          AdminOnly, IsAdminOrReadOnlyPermission,)
+from .filters import TitleFilter
+from .mixins import CreateListDestroyViewSet
+from .permissions import (AdminOnly, CommentsAndViewsPermission, AdminOrSuperUserOnly,
+                          IsAdminOrReadOnlyPermission, StaffOrAuthorOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, TitleWriteSerializer,
-                          UserSerializer, TitleSerializer, UserSerializerOrReadOnly)
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
+                          TitleWriteSerializer, UserSerializer,
+                          UserSerializerOrReadOnly)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """API для работы пользователями"""
 
     lookup_field = 'username'
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
     # permission_classes = (AllowAny,)
     pagination_class = PageNumberPagination
     filter_backends = [filters.SearchFilter]
-    search_fields = ['user__username', ]
+    search_fields = ['username', ]
 
     @action(
         detail=False,
@@ -173,7 +174,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     """Вьюсет для API к Ganre."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -183,7 +184,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateListDestroyViewSet):
     """Вьюсет для API к Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -210,7 +211,7 @@ class ApiSignup(APIView):
             serializer.save()
             username = request.data['username']
             if username == 'me':
-                return Response({'username': ['username не может быть me',]},
+                return Response({'username': ['username не может быть me', ]},
                                 status=status.HTTP_400_BAD_REQUEST)
             email = request.data['email']
             user = get_object_or_404(User, username=username)
@@ -238,25 +239,25 @@ class GetToken(APIView):
         fields = ['username', 'confirmation_code']
         for field in fields:
             if field not in request.data.keys():
-                return Response({field: [f'{field} не заполнено'],},
-                status=status.HTTP_400_BAD_REQUEST)
+                return Response({field: [f'{field} не заполнено'], },
+                                status=status.HTTP_400_BAD_REQUEST)
         user = get_object_or_404(User, username=request.data.get('username'))
         try:
             code = request.data.get('confirmation_code')
-            if code == None:
-                return Response({'message': ['пустое поле!',]},
-                        status=status.HTTP_400_BAD_REQUEST)
+            if code is None:
+                return Response({'message': ['пустое поле!', ]},
+                                status=status.HTTP_400_BAD_REQUEST)
             int(code)
         except ValueError:
             pass
         else:
-            return Response({'confirmation_code': ['неправильный тип поля!',]},
-                        status=status.HTTP_400_BAD_REQUEST)
+            return Response({'confirmation_code': ['Не верный тип поля!', ]},
+                            status=status.HTTP_400_BAD_REQUEST)
         obj_for_code = PasswordResetTokenGenerator()
         if obj_for_code.check_token(user, code):
             refresh = RefreshToken.for_user(user)
             return Response({
                 'token': str(refresh.access_token),
             }, status=status.HTTP_200_OK)
-        return Response({'message': ['неверный код',]},
+        return Response({'message': ['неверный код', ]},
                         status=status.HTTP_400_BAD_REQUEST)
