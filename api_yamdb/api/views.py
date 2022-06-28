@@ -44,16 +44,15 @@ class UserViewSet(viewsets.ModelViewSet):
         Запрос и возможность редактирования
         информации профиля пользователя.
         """
-        user = request.user
         if request.method == 'GET':
-            serializer = UserSerializer(user)
+            serializer = UserSerializer(request.user)
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK
             )
         if request.method == 'PATCH':
             serializer = UserSerializerOrReadOnly(
-                user,
+                request.user,
                 data=request.data,
                 partial=True
             )
@@ -120,21 +119,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (StaffOrAuthorOrReadOnly,)
 
     def update(self, request, *args, **kwargs):
-        user = request.user
         comment_id = self.kwargs.get('pk')
         comment = get_object_or_404(Comment, id=comment_id)
         roles = ['moderator', 'admin']
-        if user.role not in roles and not user == comment.author:
+        if (request.user.role not in roles
+                and not request.user == comment.author):
             return Response({'mes': ['Вы исправляете чужой комментарий!', ]},
                             status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        user = request.user
         comment_id = self.kwargs.get('pk')
         comment = get_object_or_404(Comment, id=comment_id)
         roles = ['moderator', 'admin']
-        if not user == comment.author and user.role not in roles:
+        if (not request.user == comment.author
+                and request.user.role not in roles):
             return Response({'message': ['Вы удаляете не свой отзыв!', ]},
                             status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
