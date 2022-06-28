@@ -1,18 +1,6 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-SCORES = (
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5),
-    (6, 6),
-    (7, 7),
-    (8, 8),
-    (9, 9),
-    (10, 10),
-)
 
 
 class User(AbstractUser):
@@ -72,7 +60,7 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведений."""
     name = models.CharField(max_length=50)
-    year = models.IntegerField()
+    year = models.PositiveSmallIntegerField()
     description = models.TextField(
         max_length=200,
         null=True,
@@ -103,7 +91,10 @@ class Review(models.Model):
         related_name='reviews',
     )
     score = models.PositiveSmallIntegerField(
-        choices=SCORES,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ]
     )
 
     class Meta:
