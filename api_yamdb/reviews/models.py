@@ -1,18 +1,6 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-SCORES = (
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5),
-    (6, 6),
-    (7, 7),
-    (8, 8),
-    (9, 9),
-    (10, 10),
-)
 
 
 class User(AbstractUser):
@@ -103,7 +91,10 @@ class Review(models.Model):
         related_name='reviews',
     )
     score = models.PositiveSmallIntegerField(
-        choices=SCORES,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ]
     )
 
     class Meta:

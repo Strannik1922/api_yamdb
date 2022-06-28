@@ -73,6 +73,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         title_id = kwargs.get('title_id')
         user = request.user
+        print(user)
         if Review.objects.filter(author=user, title=title_id).exists():
             return Response({'message': ['У вас уже есть отзыв!', ]},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -83,26 +84,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=title_id)
         user = self.request.user
         serializer.save(author=user, title=title)
-
-    def update(self, request, *args, **kwargs):
-        user = request.user
-        review_id = self.kwargs.get('pk')
-        review = get_object_or_404(Review, id=review_id)
-        roles = ['moderator', 'admin']
-        if user.role not in roles and not user == review.author:
-            return Response({'message': ['Вы исправляете не свой отзыв!', ]},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        user = request.user
-        review_id = self.kwargs.get('pk')
-        review = get_object_or_404(Review, id=review_id)
-        roles = ['moderator', 'admin']
-        if not user == review.author and user.role not in roles:
-            return Response({'message': ['Вы удаляете не свой отзыв!', ]},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -117,26 +98,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Comment."""
     serializer_class = CommentSerializer
     permission_classes = (StaffOrAuthorOrReadOnly,)
-
-    def update(self, request, *args, **kwargs):
-        comment_id = self.kwargs.get('pk')
-        comment = get_object_or_404(Comment, id=comment_id)
-        roles = ['moderator', 'admin']
-        if (request.user.role not in roles
-                and not request.user == comment.author):
-            return Response({'mes': ['Вы исправляете чужой комментарий!', ]},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        comment_id = self.kwargs.get('pk')
-        comment = get_object_or_404(Comment, id=comment_id)
-        roles = ['moderator', 'admin']
-        if (not request.user == comment.author
-                and request.user.role not in roles):
-            return Response({'message': ['Вы удаляете не свой отзыв!', ]},
-                            status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
