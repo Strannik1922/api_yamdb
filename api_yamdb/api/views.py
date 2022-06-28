@@ -1,32 +1,25 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db.models import Avg
-from rest_framework import filters, mixins, viewsets, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import (AllowAny, IsAuthenticated)
 from rest_framework_simplejwt.tokens import RefreshToken
-from .filters import TitleFilter
-
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .permissions import (StaffOrAuthorOrReadOnly,
-                          AdminOnly, IsAdminOrReadOnlyPermission,
-                          CommentsAndViewsPermission)
+
+from .filters import TitleFilter
+from .mixins import CreateListDestroyViewSet
+from .permissions import (AdminOnly, IsAdminOrReadOnlyPermission,
+                          StaffOrAuthorOrReadOnly)
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
+                          GenreSerializer, ReviewSerializer, TitleSerializer,
                           TitleWriteSerializer, UserSerializer,
-                          TitleSerializer, UserSerializerOrReadOnly)
-
-
-class CreateListDestroyViewSet(mixins.CreateModelMixin,
-                               mixins.ListModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
-    pass
+                          UserSerializerOrReadOnly)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -76,15 +69,41 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Review."""
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (CommentsAndViewsPermission, )
+    permission_classes = (StaffOrAuthorOrReadOnly, )
+
+    def create(self, request, *args, **kwargs):
+        title_id = kwargs.get('title_id')
+        user = request.user
+        if Review.objects.filter(author=user, title=title_id).exists():
+            return Response({'message': ['У вас уже есть отзыв!', ]},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         user = self.request.user
-        if Review.objects.filter(author=user.id, title=title.id).exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer.save(author=user, title=title)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        review_id = self.kwargs.get('pk')
+        review = get_object_or_404(Review, id=review_id)
+        roles = ['moderator', 'admin']
+        if user.role not in roles and not user == review.author:
+            return Response({'message': ['Вы исправляете не свой отзыв!', ]},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        review_id = self.kwargs.get('pk')
+        review = get_object_or_404(Review, id=review_id)
+        roles = ['moderator', 'admin']
+        if not user == review.author and user.role not in roles:
+            return Response({'message': ['Вы удаляете не свой отзыв!', ]},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -99,6 +118,26 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Comment."""
     serializer_class = CommentSerializer
     permission_classes = (StaffOrAuthorOrReadOnly,)
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        comment_id = self.kwargs.get('pk')
+        comment = get_object_or_404(Comment, id=comment_id)
+        roles = ['moderator', 'admin']
+        if user.role not in roles and not user == comment.author:
+            return Response({'mes': ['Вы исправляете чужой комментарий!', ]},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        comment_id = self.kwargs.get('pk')
+        comment = get_object_or_404(Comment, id=comment_id)
+        roles = ['moderator', 'admin']
+        if not user == comment.author and user.role not in roles:
+            return Response({'message': ['Вы удаляете не свой отзыв!', ]},
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         review_id = self.kwargs.get('review_id')
@@ -173,7 +212,7 @@ class ApiSignup(APIView):
             serializer.save()
             username = request.data['username']
             if username == 'me':
-                return Response({'username': ['username не может быть me',]},
+                return Response({'username': ['username не может быть me', ]},
                                 status=status.HTTP_400_BAD_REQUEST)
             email = request.data['email']
             user = get_object_or_404(User, username=username)
@@ -201,25 +240,25 @@ class GetToken(APIView):
         fields = ['username', 'confirmation_code']
         for field in fields:
             if field not in request.data.keys():
-                return Response({field: [f'{field} не заполнено'],},
-                status=status.HTTP_400_BAD_REQUEST)
+                return Response({field: [f'{field} не заполнено'], },
+                                status=status.HTTP_400_BAD_REQUEST)
         user = get_object_or_404(User, username=request.data.get('username'))
         try:
             code = request.data.get('confirmation_code')
-            if code == None:
-                return Response({'message': ['пустое поле!',]},
-                        status=status.HTTP_400_BAD_REQUEST)
+            if code is None:
+                return Response({'message': ['пустое поле!', ]},
+                                status=status.HTTP_400_BAD_REQUEST)
             int(code)
         except ValueError:
             pass
         else:
-            return Response({'confirmation_code': ['неправильный тип поля!',]},
-                        status=status.HTTP_400_BAD_REQUEST)
+            return Response({'confirmation_code': ['Не верный тип поля!', ]},
+                            status=status.HTTP_400_BAD_REQUEST)
         obj_for_code = PasswordResetTokenGenerator()
         if obj_for_code.check_token(user, code):
             refresh = RefreshToken.for_user(user)
             return Response({
                 'token': str(refresh.access_token),
             }, status=status.HTTP_200_OK)
-        return Response({'message': ['неверный код',]},
+        return Response({'message': ['неверный код', ]},
                         status=status.HTTP_400_BAD_REQUEST)
