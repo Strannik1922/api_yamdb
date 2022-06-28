@@ -6,22 +6,22 @@ from .views import (ApiSignup, CategoryViewSet, CommentViewSet, GenreViewSet,
 
 router_v1 = DefaultRouter()
 router_v1.register(
-    r'users',
+    'users',
     UserViewSet,
     basename='users'
 )
 router_v1.register(
-    r'categories',
+    'categories',
     CategoryViewSet,
     basename='categories'
 )
 router_v1.register(
-    r'genres',
+    'genres',
     GenreViewSet,
     basename='genres'
 )
 router_v1.register(
-    r'titles',
+    'titles',
     TitleViewSet,
     basename='titles'
 )
