@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from api_yamdb.settings import EMAIL_ADMIN
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
@@ -122,7 +123,6 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для API к Title."""
-    pass
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnlyPermission]
@@ -181,7 +181,7 @@ class ApiSignup(APIView):
             send_mail(
                 'Code for api_yambd',
                 f'Your code: {code}',
-                'check@mail.com',
+                EMAIL_ADMIN,
                 [email, ],
             )
             return Response(
